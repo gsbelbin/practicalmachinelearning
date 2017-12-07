@@ -1,0 +1,56 @@
+---
+title: "Prediction Assignment"
+author: "Gordon Belbin"
+date: "6 December 2017"
+output: html_document
+---
+
+##Introduction
+The objective of this assignment is to develop a means of predicting whether a particular activity (barbell lifts) is being carried out correctly and, if not, what errors are being made.  The source of the data used for this assignment is reference 1. A training data set is provided along with a test set. These data contain the outputs from various accelerometers placed around the body which take readings during the performance of the exercise both correctly and incorrectly. Correct execution was classed as A while various incorrect executions were classed as B to E.
+
+##Model
+A model was developed in RStudio using the training data provided. On studying the data it was noticed that there were a lot of columns which were either empty or contained NAs or were not relevant to the prediction. These columns were removed prior to the analysis. Consideration was given as to the best method to use and it was decided that Random Forest would be the most appropriate. By using this method there would be no requirement to use cross validation in order to avoid over-fitting to the training data. According to Leo Breiman, who developed random forests, "In random forests, there is no need for cross-validation or a separate test set to get an unbiased estimate of the test set error" (reference 2). The function was run using default values for the various tuning parameters and these were found to give a very low out-of-bag error and so this approach was retained.
+
+##Analysis
+```{r cache=TRUE, message = FALSE, warning = FALSE}
+## Load the required randomForest library and set the working directory
+library("randomForest")
+## setwd("~/Coursera")
+## Load the training data file
+data <- read.csv("pml-training.csv", stringsAsFactors = TRUE)
+
+## Trim the data so that it only contains useful columns
+train <- data[, c(2,8:11,37:49,60:68,84:86,102,113:124,140,151:160)]
+
+## Use randomForest to analyse the data with a seed to allow reproducibility
+set.seed(123)
+rf.train <- randomForest(classe~., data=train, importance=TRUE)
+```
+
+##Results
+The results for the training set are shown below. 
+```{r message = FALSE}
+## View the results of the analysis
+rf.train
+
+
+```
+As can be seen this approach gave very accurate results with an out-of-bag (out-of-sample) error of only 0.28%.
+
+The resulting model was used to predict the classifications for 20 test cases. The results of this are shown below. Subsequent testing of these results gave 100% accuracy.
+```{r cache=TRUE}
+## Read in the test data file
+rf.test <- read.csv("pml-testing.csv", stringsAsFactors = TRUE)
+## Predict the results for the 20 test cases
+rf.result <- predict(rf.train, newdata = rf.test)
+## View the results
+rf.result
+```
+
+##Conclusions
+It is concluded that for the training and test data sets provided the use of random forest to generate a predictive model is a satisfactory method which gave a very low (0.28%) out-of-bag error and, in this case, 100% accuracy on the test set.
+
+
+##References
+1  Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.  
+2  https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
